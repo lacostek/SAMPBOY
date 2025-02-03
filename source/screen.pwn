@@ -84,7 +84,6 @@ stock CreateGameBoyScreen(Float:x = 278.0, Float:y = 105.0)
 {
     new line[SCREEN_LINE_SIZE];
     GenerateScreenLine(line);
-	print(line);
 
     for(new i = 0; i < SCREEN_HEIGHT; i++)
     {
