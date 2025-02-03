@@ -22,6 +22,10 @@ SAMPBOY is a unique GameBoy emulator for open.mp. It is written in Pawn using Te
 |--------|----------|
 | Tetris | Working  |
 
+### Credits
+
+The emulator is based on [brickboy by maxpoletaev](https://github.com/maxpoletaev/brickboy).
+
 ---
 
 ## Russian
@@ -47,3 +51,7 @@ SAMPBOY — это уникальный эмулятор геймбоя для o
 | Игра        | Статус        |
 |-------------|---------------|
 | Tetris      | Работает      |
+
+### Credits
+
+Эмулятор базируется на [brickboy от maxpoletaev](https://github.com/maxpoletaev/brickboy).
