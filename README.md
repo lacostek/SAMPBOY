@@ -8,7 +8,7 @@
 
 SAMPBOY is a unique GameBoy emulator for open.mp. It is written in Pawn using TextDraws to simulate the GameBoy display.
 
-> **Important:** Due to a 1ms timer, the server thread gets blocked, and the emulator creates a high CPU load. **It is recommended to test it only on a local server** and not to use it on a public server with players.
+> **Important:** Due to a 1ms timer, the server thread gets blocked when the emulator starts, and the emulator creates a high CPU load. **It is recommended to test it only on a local server** and not to use it on a public server with players.
 
 ### Commands
 
@@ -38,7 +38,7 @@ The emulator is based on [brickboy by maxpoletaev](https://github.com/maxpoletae
 
 SAMPBOY — это уникальный эмулятор геймбоя для open.mp. Написан на Pawn с использованием TextDraw для имитации экрана геймбоя.
 
-> **Важно:** Из-за таймера в 1 мс блокируется поток сервера, а также эмулятор создает высокую нагрузку на процессор. **Рекомендуется тестировать его только на локальном сервере** и не использовать на публичном сервере с игроками.
+> **Важно:** Из-за таймера в 1 мс при старте эмулятора блокируется поток сервера, а также эмулятор создает высокую нагрузку на процессор. **Рекомендуется тестировать его только на локальном сервере** и не использовать на публичном сервере с игроками.
 
 ### Команды
 
