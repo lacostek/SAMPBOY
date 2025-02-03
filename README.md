@@ -1,6 +1,6 @@
 ## English
 
-# SAMPBOY - GameBoy Emulator for open.mp
+# SAMPBOY - GameBoy Emulator for open.mp (W.I.P)
 
 [![Video](https://img.youtube.com/vi/j_VoCQt6vIw/0.jpg)](https://youtu.be/j_VoCQt6vIw)
 
@@ -26,7 +26,7 @@ SAMPBOY is a unique GameBoy emulator for open.mp. It is written in Pawn using Te
 
 ## Russian
 
-# SAMPBOY - Эмулятор GameBoy для open.mp
+# SAMPBOY - Эмулятор GameBoy для open.mp (W.I.P)
 
 [![Видео](https://img.youtube.com/vi/j_VoCQt6vIw/0.jpg)](https://youtu.be/j_VoCQt6vIw)
 
