@@ -1,9 +1,3 @@
-//----------------------------------------------------
-//
-// File Author: Roman Shadow (lacostek)
-//
-//----------------------------------------------------
-
 #if defined _GAMEBOY_ROM_INC
 #endinput
 #endif
@@ -21,31 +15,31 @@
 //----------------------------------------------------
 enum E_GB_ROM_TYPE
 {
-    ROM_TYPE_ROM_ONLY =         0x00,
-    // ---------------
-    ROM_TYPE_MBC1 =             0x01,
-    ROM_TYPE_MBC1_RAM =         0x02,
-    ROM_TYPE_MBC1_RAM_BATT =    0x03,
-    // ---------------
-    ROM_TYPE_MBC2 =             0x05,
-    ROM_TYPE_MBC2_BATT =        0x06
+	ROM_TYPE_ROM_ONLY =         0x00,
+	// ---------------
+	ROM_TYPE_MBC1 =             0x01,
+	ROM_TYPE_MBC1_RAM =         0x02,
+	ROM_TYPE_MBC1_RAM_BATT =    0x03,
+	// ---------------
+	ROM_TYPE_MBC2 =             0x05,
+	ROM_TYPE_MBC2_BATT =        0x06
 };
 
 //----------------------------------------------------
 enum E_GB_ROM_HEADER_STRUCT
 {
-    E_TITLE[ROM_TITLE_SIZE + 1],
-    E_TYPE,
-    E_ROM_SIZE,
-    E_RAM_SIZE
+	E_TITLE[ROM_TITLE_SIZE + 1],
+	E_TYPE,
+	E_ROM_SIZE,
+	E_RAM_SIZE
 };
 
 enum E_GB_ROM_STRUCT
 {
-    E_HEADER[E_GB_ROM_HEADER_STRUCT],
-    E_DATA[MAX_ROM_DATA_SIZE],
-    E_ROM_SIZE,
-    E_RAM_SIZE
+	E_HEADER[E_GB_ROM_HEADER_STRUCT],
+	E_DATA[MAX_ROM_DATA_SIZE],
+	E_ROM_SIZE,
+	E_RAM_SIZE
 };
 
 new g_rom[E_GB_ROM_STRUCT];

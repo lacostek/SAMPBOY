@@ -1,9 +1,3 @@
-//----------------------------------------------------
-//
-// File Author: Roman Shadow (lacostek)
-//
-//----------------------------------------------------
-
 #if defined _GAMEBOY_OPCODES
 #endinput
 #endif
