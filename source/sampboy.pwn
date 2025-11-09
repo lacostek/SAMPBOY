@@ -1,6 +1,6 @@
 //----------------------------------------------------
 //
-// Description: GameBoy Emulator for SA-MP (server open.mp), powered by brickboy - a lightweight GameBoy emulator. 
+// Description: GameBoy Emulator for SA-MP (server open.mp), powered by brickboy. 
 //
 // WARNING: SCRIPT SUPPORT FOR SA-MP SERVER IS NOT PROVIDED DUE TO INEFFICIENT SA-MP TIMERS
 //
@@ -16,18 +16,29 @@
 
 //----------------------------------------------------
 // Config
-#define SCRIPT_NAME     "SAMPBOY - Emulator GameBoy 1989 in open.mp server"
+#define SCRIPT_NAME     "SAMPBOY - Emulator GameBoy Classic in open.mp server"
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 0
-#define VERSION_PATCH 7
+#define VERSION_PATCH 8
+/*
+#define _DEBUG
+#define _ENABLE_WARNING_LOG
+#define _ENABLE_CRITICAL_LOG*/
+//#define DEBUG_OPCODES // - very slow
 
-//#define _DEBUG
-//#define _ENABLE_WARNING_LOG
-//#define _ENABLE_CRITICAL_LOG
-//#define _SAMP_SERVER_TEST
+
+#if defined _samp_included
+	#define _SAMP_SERVER_TEST
+#endif
+
+// Options
+#define OPTIONS_FILE 	"roms.ini"
+
+#define DIALOG_SELECT_ROM 31000
 
 //----------------------------------------------------
+#include "helper.inc"
 #include "rom.inc"
 #include "boot.inc"
 #include "cpu.inc"
@@ -50,6 +61,8 @@ new
 	gb_process_ticks = 0,
 	tick_interval = 1,
 	should_stop_timer = 0;
+
+//new CPU_CYCLES_TIME;
 
 //----------------------------------------------------
 stock E_MAPPER_TYPE: GetMapperType()
@@ -95,11 +108,16 @@ stock HandleInterrupts()
 			{
 				GB_MMU_Interrupt_Clear(ints[i]);
 				GB_CPU_Interrput(addrs[i]);
+				return 1;
 			}
-			return 1;
+			else
+			{
+				g_cpu[CPU_HALTED] = false;
+				return 0;
+			}
 		}
 	}
-	return 1;
+	return 0;
 }
 
 stock HandleInput()
@@ -145,6 +163,20 @@ public SAMPBOY_Process()
 		GB_CPU_Step();
 	}
 
+	#if defined CPU_CYCLES_TIME
+	if(gb_process_ticks % 4_194_304 == 0)
+	{
+		new elapsed_ms = GetTickCount() - CPU_CYCLES_TIME;
+
+		if(elapsed_ms > 0)
+		{
+			new cpu_freq = (4194304 * 100) / (elapsed_ms * 1000);
+			printf("GB-CPU: %dms | %d.%02d MHz (%.1fx)", elapsed_ms, cpu_freq / 100, cpu_freq % 100, float((1000 * 10) / elapsed_ms) / 10.0);
+		}
+		CPU_CYCLES_TIME = GetTickCount();
+	}
+	#endif
+
 	GB_Timer_Step();
 	GB_PPU_Step();
 	GB_MMU_DMA_Step();
@@ -176,20 +208,18 @@ public SAMPBOY_Process()
 	return SetTimer("SAMPBOY_Process", tick_interval, false);
 }
 
-stock SAMPBOY_Start()
+stock SAMPBOY_Start(const rom[])
 {
-	GB_Options_Init("roms.ini"); // scriptfiles
-
-	if(!GB_ROM_Open(g_gb_options[E_ROM_PATH]))
+	if(!GB_ROM_Open(rom))
 	{
-		printf("[MAIN]: Failed to open rom file: %s", g_gb_options[E_ROM_PATH]);
+		printf("[MAIN]: Failed to open rom file: %s", rom);
 		return 0;
 	}
 
 	new E_MAPPER_TYPE: mapper = GetMapperType();
 	if(mapper == INVALID_MAPPER)
 	{
-		printf("[MAIN]: Failed to load rom: %s", g_gb_options[E_ROM_PATH]);
+		printf("[MAIN]: Failed to load rom: %s", rom);
 		return 0;
 	}
 	GB_Mapper_Init(mapper);
@@ -204,6 +234,9 @@ stock SAMPBOY_Start()
 	GB_Joypad_Init();
 	GB_MMU_Init();
 
+	#if defined CPU_CYCLES_TIME
+		CPU_CYCLES_TIME = GetTickCount();
+	#endif
 	SAMPBOY_Process();
 
 	return 1;
@@ -216,6 +249,23 @@ stock SAMPBOY_Stop()
 	tick_interval = 1;
 }
 
+stock SAMPBOY_ShowRomsList(playerid)
+{
+	new str[MAX_FILE_NAME * MAX_FILE_ROMS + 2 + 1];
+	new buffer[MAX_FILE_NAME + 2 + 1];
+
+	for(new i = 0; i < sizeof(g_gb_roms_list); i++)
+	{
+		if(g_gb_roms_list[i][0] != '\0')
+		{
+			format(buffer, sizeof buffer, "%s\n", g_gb_roms_list[i]);
+			strcat(str, buffer);
+		}
+	}
+
+	ShowPlayerDialog(playerid, DIALOG_SELECT_ROM, DIALOG_STYLE_LIST, "Select ROM", str, "Select", "Close");
+}
+
 //----------------------------------------------------
 #if defined FILTERSCRIPT
 public OnFilterScriptInit()
@@ -223,6 +273,9 @@ public OnFilterScriptInit()
 public OnGameModeInit()
 #endif
 {
+	CreateGameBoyTD();
+	GB_Options_Init(OPTIONS_FILE);
+
 	SendRconCommand("network.acks_limit 64000");
 
 	print("\n--------------------------------------");
@@ -230,8 +283,6 @@ public OnGameModeInit()
 	printf(" Version: %d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 	printf(" Build time: %s ", __time);
 	print("--------------------------------------\n");
-
-	CreateGameBoyTD();
 
 	return 1;
 }
@@ -251,12 +302,31 @@ public OnGameModeExit()
 	return 1;
 }
 
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+{
+	if(dialogid == DIALOG_SELECT_ROM)
+	{
+		if(response)
+		{
+			if(g_gb_roms_list[listitem][0] != '\0')
+			{
+				SAMPBOY_Start(g_gb_roms_list[listitem]);
+			}
+		}
+		else
+		{
+			HideGameBoyForPlayer(playerid);
+		}
+	}
+	return 1;
+}
+
 public OnPlayerCommandText(playerid, cmdtext[])
 {
 	if(!strcmp(cmdtext, "/startgb", true))
 	{
 		ShowGameBoyForPlayer(playerid);
-		SAMPBOY_Start();
+		SAMPBOY_ShowRomsList(playerid)
 		return 1;
 	}
 	else if(!strcmp(cmdtext, "/stopgb", true))

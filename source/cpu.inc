@@ -100,26 +100,27 @@ enum E_CPU_STRUCT // Sharp LR35902
 new g_cpu[E_CPU_STRUCT];
 
 //----------------------------------------------------
-#define CPU_GET_AF(%0) ((%0[CPU_A] << 8) | %0[CPU_F])
+//#define CPU_GET_AF(%0) ((%0[CPU_A] << 8) | %0[CPU_F])
+#define CPU_GET_AF(%0) ((%0[CPU_A] << 8) | (%0[CPU_F] & 0xF0))
 #define CPU_GET_BC(%0) ((%0[CPU_B] << 8) | %0[CPU_C])
 #define CPU_GET_DE(%0) ((%0[CPU_D] << 8) | %0[CPU_E])
 #define CPU_GET_HL(%0) ((%0[CPU_H] << 8) | %0[CPU_L])
 
 #define CPU_SET_AF(%0,%1) \
 	%0[CPU_A] = (%1 >> 8) & 0xFF; \
-	%0[CPU_F] = %1 & 0xF0
+	%0[CPU_F] = (%1) & 0xF0
 
 #define CPU_SET_BC(%0,%1) \
 	%0[CPU_B] = (%1 >> 8) & 0xFF; \
-	%0[CPU_C] = %1 & 0xFF
+	%0[CPU_C] = (%1) & 0xFF
 
 #define CPU_SET_DE(%0,%1) \
 	%0[CPU_D] = (%1 >> 8) & 0xFF; \
-	%0[CPU_E] = %1 & 0xFF
+	%0[CPU_E] = (%1) & 0xFF
 
 #define CPU_SET_HL(%0,%1) \
 	%0[CPU_H] = (%1 >> 8) & 0xFF; \
-	%0[CPU_L] = %1 & 0xFF
+	%0[CPU_L] = (%1) & 0xFF
 
 // Getters
 stock CPU_GetZeroFlag()

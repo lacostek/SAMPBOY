@@ -19,10 +19,6 @@
 #define SCREEN_LINE_SIZE  (((SCREEN_WIDTH / SCREEN_LINE_COUNT) * SCREEN_CHARS_PER_PIXEL) + 1)
 #define SCREEN_LINE_WIDTH (SCREEN_WIDTH / SCREEN_LINE_COUNT)
 
-// If you read this, don't blame me pls, I will fix textdraws later, but now it's like this.  
-#define TextDrawAlignmentF(%0,%1) TextDrawAlignment(%0,TEXT_DRAW_ALIGN:%1)
-#define TextDrawFontF(%0,%1) TextDrawFont(%0,TEXT_DRAW_FONT:%1)
-
 //----------------------------------------------------
 enum E_SCREEN_COLORS
 {
@@ -37,6 +33,7 @@ new const g_screen_colors[][4 + 1] =
 	"",
 	"ghhh", "gghh", "gggh", "gggg"
 };
+
 //----------------------------------------------------
 enum E_SCREEN_BUTTONS
 {
@@ -95,14 +92,14 @@ stock CreateGameBoyScreen(Float:x = 278.0, Float:y = 105.0)
 			g_screen_line[i][j] = line;
 			
 			TextDrawLetterSize(g_screen_line_td[i][j], 0.116, 0.8);
-			TextDrawAlignmentF(g_screen_line_td[i][j], 2);
+			TextDrawAlignment(g_screen_line_td[i][j], TEXT_DRAW_ALIGN_CENTRE);
 			TextDrawColour(g_screen_line_td[i][j], 0xFFFFFFFF);
 			TextDrawUseBox(g_screen_line_td[i][j], false);
 			TextDrawBoxColour(g_screen_line_td[i][j], 0x000000AA);
 			TextDrawSetShadow(g_screen_line_td[i][j], 0);
 			TextDrawSetOutline(g_screen_line_td[i][j], 0);
 			TextDrawBackgroundColour(g_screen_line_td[i][j], 0x000000FF);
-			TextDrawFontF(g_screen_line_td[i][j], 2);
+			TextDrawFont(g_screen_line_td[i][j], TEXT_DRAW_FONT_2);
 			TextDrawSetProportional(g_screen_line_td[i][j], true);
 		}
 	}
@@ -114,123 +111,123 @@ stock CreateGameBoyTD()
 	g_gameboy_td[0] = TextDrawCreate(316, 292, "ld_beat:chit");
 	TextDrawLetterSize(g_gameboy_td[0], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[0], 98, 101);
-	TextDrawAlignmentF(g_gameboy_td[0], 1);
+	TextDrawAlignment(g_gameboy_td[0], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[0], 0xC0C0C0FF);
 	TextDrawUseBox(g_gameboy_td[0], false);
 	TextDrawBoxColour(g_gameboy_td[0], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[0], 0);
 	TextDrawSetOutline(g_gameboy_td[0], 1);
 	TextDrawBackgroundColour(g_gameboy_td[0], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[0], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[0], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[0], true);
 
 	g_gameboy_td[1] = TextDrawCreate(316, 292, "ld_beat:chit");
 	TextDrawLetterSize(g_gameboy_td[1], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[1], 98, 101);
-	TextDrawAlignmentF(g_gameboy_td[1], 1);
+	TextDrawAlignment(g_gameboy_td[1], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[1], 0xC0C0C0FF);
 	TextDrawUseBox(g_gameboy_td[1], false);
 	TextDrawBoxColour(g_gameboy_td[1], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[1], 0);
 	TextDrawSetOutline(g_gameboy_td[1], 1);
 	TextDrawBackgroundColour(g_gameboy_td[1], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[1], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[1], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[1], true);
 
 	// Background
 	g_gameboy_td[2] = TextDrawCreate(243, 74, "ld_dual:white"); // 1
 	TextDrawLetterSize(g_gameboy_td[2], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[2], 155, 272);
-	TextDrawAlignmentF(g_gameboy_td[2], 1);
+	TextDrawAlignment(g_gameboy_td[2], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[2], 0xC0C0C0FF);
 	TextDrawUseBox(g_gameboy_td[2], false);
 	TextDrawBoxColour(g_gameboy_td[2], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[2], 0);
 	TextDrawSetOutline(g_gameboy_td[2], 1);
 	TextDrawBackgroundColour(g_gameboy_td[2], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[2], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[2], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[2], true);
 
 	g_gameboy_td[3] = TextDrawCreate(243, 345, "ld_dual:white"); // 2
 	TextDrawLetterSize(g_gameboy_td[3], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[3], 118, 31);
-	TextDrawAlignmentF(g_gameboy_td[3], 1);
+	TextDrawAlignment(g_gameboy_td[3], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[3], 0xC0C0C0FF);
 	TextDrawUseBox(g_gameboy_td[3], false);
 	TextDrawBoxColour(g_gameboy_td[3], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[3], 0);
 	TextDrawSetOutline(g_gameboy_td[3], 1);
 	TextDrawBackgroundColour(g_gameboy_td[3], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[3], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[3], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[3], true);
 
 	// Buttons
 	g_gameboy_td[4] = TextDrawCreate(268, 252, "ld_dual:white"); // D-PAD UP
 	TextDrawLetterSize(g_gameboy_td[4], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[4], 12, 14);
-	TextDrawAlignmentF(g_gameboy_td[4], 1);
+	TextDrawAlignment(g_gameboy_td[4], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[4], 0x000000FF);
 	TextDrawUseBox(g_gameboy_td[4], false);
 	TextDrawBoxColour(g_gameboy_td[4], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[4], 0);
 	TextDrawSetOutline(g_gameboy_td[4], 1);
 	TextDrawBackgroundColour(g_gameboy_td[4], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[4], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[4], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[4], true);
 	TextDrawSetSelectable(g_gameboy_td[4], true);
 
 	g_gameboy_td[5] = TextDrawCreate(268, 266, "ld_dual:white"); // D-PAD UNUSED
 	TextDrawLetterSize(g_gameboy_td[5], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[5], 12, 14);
-	TextDrawAlignmentF(g_gameboy_td[5], 1);
+	TextDrawAlignment(g_gameboy_td[5], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[5], 0x000000FF);
 	TextDrawUseBox(g_gameboy_td[5], false);
 	TextDrawBoxColour(g_gameboy_td[5], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[5], 0);
 	TextDrawSetOutline(g_gameboy_td[5], 1);
 	TextDrawBackgroundColour(g_gameboy_td[5], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[5], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[5], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[5], true);
 
 	g_gameboy_td[6] = TextDrawCreate(268, 280, "ld_dual:white"); // D-PAD DOWN
 	TextDrawLetterSize(g_gameboy_td[6], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[6], 12, 14);
-	TextDrawAlignmentF(g_gameboy_td[6], 1);
+	TextDrawAlignment(g_gameboy_td[6], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[6], 0x000000FF);
 	TextDrawUseBox(g_gameboy_td[6], false);
 	TextDrawBoxColour(g_gameboy_td[6], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[6], 0);
 	TextDrawSetOutline(g_gameboy_td[6], 1);
 	TextDrawBackgroundColour(g_gameboy_td[6], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[6], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[6], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[6], true);
 	TextDrawSetSelectable(g_gameboy_td[6], true);
 
 	g_gameboy_td[7] = TextDrawCreate(256, 266, "ld_dual:white"); // D-PAD LEFT
 	TextDrawLetterSize(g_gameboy_td[7], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[7], 12, 14);
-	TextDrawAlignmentF(g_gameboy_td[7], 1);
+	TextDrawAlignment(g_gameboy_td[7], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[7], 0x000000FF);
 	TextDrawUseBox(g_gameboy_td[7], false);
 	TextDrawBoxColour(g_gameboy_td[7], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[7], 0);
 	TextDrawSetOutline(g_gameboy_td[7], 1);
 	TextDrawBackgroundColour(g_gameboy_td[7], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[7], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[7], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[7], true);
 	TextDrawSetSelectable(g_gameboy_td[7], true);
 
 	g_gameboy_td[8] = TextDrawCreate(280, 266, "ld_dual:white"); // D-PAD RIGHT
 	TextDrawLetterSize(g_gameboy_td[8], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[8], 12, 14);
-	TextDrawAlignmentF(g_gameboy_td[8], 1);
+	TextDrawAlignment(g_gameboy_td[8], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[8], 0x000000FF);
 	TextDrawUseBox(g_gameboy_td[8], false);
 	TextDrawBoxColour(g_gameboy_td[8], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[8], 0);
 	TextDrawSetOutline(g_gameboy_td[8], 1);
 	TextDrawBackgroundColour(g_gameboy_td[8], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[8], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[8], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[8], true);
 	TextDrawSetSelectable(g_gameboy_td[8], true);
 
@@ -238,14 +235,14 @@ stock CreateGameBoyTD()
 	g_gameboy_td[9] = TextDrawCreate(336, 265, "ld_beat:chit");
 	TextDrawLetterSize(g_gameboy_td[9], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[9], 30, 36);
-	TextDrawAlignmentF(g_gameboy_td[9], 1);
+	TextDrawAlignment(g_gameboy_td[9], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[9], 0x800040FF);
 	TextDrawUseBox(g_gameboy_td[9], false);
 	TextDrawBoxColour(g_gameboy_td[9], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[9], 0);
 	TextDrawSetOutline(g_gameboy_td[9], 1);
 	TextDrawBackgroundColour(g_gameboy_td[9], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[9], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[9], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[9], true);
 	TextDrawSetSelectable(g_gameboy_td[9], true);
 
@@ -253,14 +250,14 @@ stock CreateGameBoyTD()
 	g_gameboy_td[10] = TextDrawCreate(362, 254, "ld_beat:chit");
 	TextDrawLetterSize(g_gameboy_td[10], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[10], 30, 36);
-	TextDrawAlignmentF(g_gameboy_td[10], 1);
+	TextDrawAlignment(g_gameboy_td[10], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[10], 0x800040FF);
 	TextDrawUseBox(g_gameboy_td[10], false);
 	TextDrawBoxColour(g_gameboy_td[10], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[10], 0);
 	TextDrawSetOutline(g_gameboy_td[10], 1);
 	TextDrawBackgroundColour(g_gameboy_td[10], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[10], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[10], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[10], true);
 	TextDrawSetSelectable(g_gameboy_td[10], true);
 
@@ -268,14 +265,14 @@ stock CreateGameBoyTD()
 	g_gameboy_td[11] = TextDrawCreate(283, 320, "ld_dual:white");
 	TextDrawLetterSize(g_gameboy_td[11], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[11], 22, 8);
-	TextDrawAlignmentF(g_gameboy_td[11], 1);
+	TextDrawAlignment(g_gameboy_td[11], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[11], 0x808080FF);
 	TextDrawUseBox(g_gameboy_td[11], false);
 	TextDrawBoxColour(g_gameboy_td[11], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[11], 0);
 	TextDrawSetOutline(g_gameboy_td[11], 1);
 	TextDrawBackgroundColour(g_gameboy_td[11], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[11], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[11], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[11], true);
 	TextDrawSetSelectable(g_gameboy_td[11], true);
 
@@ -283,14 +280,14 @@ stock CreateGameBoyTD()
 	g_gameboy_td[12] = TextDrawCreate(314, 320, "ld_dual:white");
 	TextDrawLetterSize(g_gameboy_td[12], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[12], 22, 8);
-	TextDrawAlignmentF(g_gameboy_td[12], 1);
+	TextDrawAlignment(g_gameboy_td[12], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[12], 0x808080FF);
 	TextDrawUseBox(g_gameboy_td[12], false);
 	TextDrawBoxColour(g_gameboy_td[12], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[12], 0);
 	TextDrawSetOutline(g_gameboy_td[12], 1);
 	TextDrawBackgroundColour(g_gameboy_td[12], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[12], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[12], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[12], true);
 	TextDrawSetSelectable(g_gameboy_td[12], true);
 
@@ -298,122 +295,122 @@ stock CreateGameBoyTD()
 	g_gameboy_td[13] = TextDrawCreate(328, 137, "ld_beat:chit");
 	TextDrawLetterSize(g_gameboy_td[13], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[13], 70, 93.333333);
-	TextDrawAlignmentF(g_gameboy_td[13], 1);
+	TextDrawAlignment(g_gameboy_td[13], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[13], 0x808080FF);
 	TextDrawUseBox(g_gameboy_td[13], false);
 	TextDrawBoxColour(g_gameboy_td[13], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[13], 0);
 	TextDrawSetOutline(g_gameboy_td[13], 1);
 	TextDrawBackgroundColour(g_gameboy_td[13], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[13], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[13], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[13], true);
 
 	// Background display
 	g_gameboy_td[14] = TextDrawCreate(255, 97, "ld_dual:white");
 	TextDrawLetterSize(g_gameboy_td[14], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[14], 131, 83.377777);
-	TextDrawAlignmentF(g_gameboy_td[14], 1);
+	TextDrawAlignment(g_gameboy_td[14], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[14], 0x808080FF);
 	TextDrawUseBox(g_gameboy_td[14], false);
 	TextDrawBoxColour(g_gameboy_td[14], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[14], 0);
 	TextDrawSetOutline(g_gameboy_td[14], 1);
 	TextDrawBackgroundColour(g_gameboy_td[14], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[14], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[14], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[14], true);
 
 	g_gameboy_td[15] = TextDrawCreate(255, 180, "ld_dual:white");
 	TextDrawLetterSize(g_gameboy_td[15], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[15], 107, 34.844444);
-	TextDrawAlignmentF(g_gameboy_td[15], 1);
+	TextDrawAlignment(g_gameboy_td[15], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[15], 0x808080FF);
 	TextDrawUseBox(g_gameboy_td[15], false);
 	TextDrawBoxColour(g_gameboy_td[15], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[15], 0);
 	TextDrawSetOutline(g_gameboy_td[15], 1);
 	TextDrawBackgroundColour(g_gameboy_td[15], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[15], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[15], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[15], true);
 
 	// Inscriptions
 	g_gameboy_td[16] = TextDrawCreate(255, 215, "SAMP-BOY tm");
 	TextDrawLetterSize(g_gameboy_td[16], 0.2, 1.3);
 	TextDrawTextSize(g_gameboy_td[16], 316, 228);
-	TextDrawAlignmentF(g_gameboy_td[16], 1);
+	TextDrawAlignment(g_gameboy_td[16], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[16], 0x004080FF);
 	TextDrawUseBox(g_gameboy_td[16], false);
 	TextDrawBoxColour(g_gameboy_td[16], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[16], 0);
 	TextDrawSetOutline(g_gameboy_td[16], 0);
 	TextDrawBackgroundColour(g_gameboy_td[16], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[16], 2);
+	TextDrawFont(g_gameboy_td[16], TEXT_DRAW_FONT_2);
 	TextDrawSetProportional(g_gameboy_td[16], true);
 
 	g_gameboy_td[17] = TextDrawCreate(350, 288, "           a~n~b");
 	TextDrawLetterSize(g_gameboy_td[17], 0.2, 1.3);
 	TextDrawTextSize(g_gameboy_td[17], 386, 318);
-	TextDrawAlignmentF(g_gameboy_td[17], 1);
+	TextDrawAlignment(g_gameboy_td[17], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[17], 0x004080FF);
 	TextDrawUseBox(g_gameboy_td[17], false);
 	TextDrawBoxColour(g_gameboy_td[17], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[17], 0);
 	TextDrawSetOutline(g_gameboy_td[17], 0);
 	TextDrawBackgroundColour(g_gameboy_td[17], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[17], 2);
+	TextDrawFont(g_gameboy_td[17], TEXT_DRAW_FONT_2);
 	TextDrawSetProportional(g_gameboy_td[17], true);
 
 	g_gameboy_td[18] = TextDrawCreate(280, 330, "select start");
 	TextDrawLetterSize(g_gameboy_td[18], 0.2, 1.3);
 	TextDrawTextSize(g_gameboy_td[18], 346, 344);
-	TextDrawAlignmentF(g_gameboy_td[18], 1);
+	TextDrawAlignment(g_gameboy_td[18], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[18], 0x004080FF);
 	TextDrawUseBox(g_gameboy_td[18], false);
 	TextDrawBoxColour(g_gameboy_td[18], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[18], 0);
 	TextDrawSetOutline(g_gameboy_td[18], 0);
 	TextDrawBackgroundColour(g_gameboy_td[18], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[18], 2);
+	TextDrawFont(g_gameboy_td[18], TEXT_DRAW_FONT_2);
 	TextDrawSetProportional(g_gameboy_td[18], true);
 
 	// Speaker
 	g_gameboy_td[19] = TextDrawCreate(350, 318, "\\\\\\\\\\\\");
 	TextDrawLetterSize(g_gameboy_td[19], 0.4, 5);
 	TextDrawTextSize(g_gameboy_td[19], 403.600006, 381.822222);
-	TextDrawAlignmentF(g_gameboy_td[19], 1);
+	TextDrawAlignment(g_gameboy_td[19], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[19], 0xC0C0C0FF);
 	TextDrawUseBox(g_gameboy_td[19], false);
 	TextDrawBoxColour(g_gameboy_td[19], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[19], 0);
 	TextDrawSetOutline(g_gameboy_td[19], 1);
 	TextDrawBackgroundColour(g_gameboy_td[19], 0x808080FF);
-	TextDrawFontF(g_gameboy_td[19], 1);
+	TextDrawFont(g_gameboy_td[19], TEXT_DRAW_FONT_1);
 	TextDrawSetProportional(g_gameboy_td[19], true);
 
 	// Battery indicator
 	g_gameboy_td[20] = TextDrawCreate(264, 138, "ld_beat:chit");
 	TextDrawLetterSize(g_gameboy_td[20], 1, 3.5);
 	TextDrawTextSize(g_gameboy_td[20], 6, 7);
-	TextDrawAlignmentF(g_gameboy_td[20], 1);
+	TextDrawAlignment(g_gameboy_td[20], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[20], 0xFF0000FF);
 	TextDrawUseBox(g_gameboy_td[20], false);
 	TextDrawBoxColour(g_gameboy_td[20], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[20], 0);
 	TextDrawSetOutline(g_gameboy_td[20], 1);
 	TextDrawBackgroundColour(g_gameboy_td[20], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[20], TEXT_DRAW_FONT_SPRITE_DRAW);
+	TextDrawFont(g_gameboy_td[20], TEXT_DRAW_FONT_SPRITE_DRAW);
 	TextDrawSetProportional(g_gameboy_td[20], true);
 
 	g_gameboy_td[21] = TextDrawCreate(258, 148, "battery");
 	TextDrawLetterSize(g_gameboy_td[21], 0.1, 0.7);
 	TextDrawTextSize(g_gameboy_td[21], 317.599998, 161.088888);
-	TextDrawAlignmentF(g_gameboy_td[21], 1);
+	TextDrawAlignment(g_gameboy_td[21], TEXT_DRAW_ALIGN_LEFT);
 	TextDrawColour(g_gameboy_td[21], 0xFFFFFFFF);
 	TextDrawUseBox(g_gameboy_td[21], false);
 	TextDrawBoxColour(g_gameboy_td[21], 0x000000AA);
 	TextDrawSetShadow(g_gameboy_td[21], 0);
 	TextDrawSetOutline(g_gameboy_td[21], 0);
 	TextDrawBackgroundColour(g_gameboy_td[21], 0x000000FF);
-	TextDrawFontF(g_gameboy_td[21], 2);
+	TextDrawFont(g_gameboy_td[21], TEXT_DRAW_FONT_2);
 	TextDrawSetProportional(g_gameboy_td[21], true);
 
 	CreateGameBoyScreen(288.0, 100.0);
@@ -471,7 +468,7 @@ stock HideGameBoyForPlayer(playerid)
 	CancelSelectTextDraw(playerid);
 }
 
-stock E_SCREEN_COLORS: ConvertScreenColor(color_id)
+stock E_SCREEN_COLORS: GetScreenColor(color_id)
 {
 	switch(color_id)
 	{
@@ -488,7 +485,7 @@ stock Screen_SetPixelColor(width, height, color_id)
 	if(width < 0 || width >= SCREEN_WIDTH || height < 0 || height >= SCREEN_HEIGHT)
 		return 0;
 
-	new E_SCREEN_COLORS:color = ConvertScreenColor(color_id);
+	new E_SCREEN_COLORS:color = GetScreenColor(color_id);
 
 	if(g_screen_color[height][width] == color)
 		return 0;
@@ -498,7 +495,8 @@ stock Screen_SetPixelColor(width, height, color_id)
 	new pixel_index = (width % (SCREEN_LINE_WIDTH * 2)) / 2;
 
 	new line[SCREEN_LINE_SIZE];
-	format(line, sizeof line, g_screen_line[height][line_type]);
+	line = g_screen_line[height][line_type];
+	//format(line, sizeof line, g_screen_line[height][line_type]);
 
 	new color_pixel = g_screen_pixel_map[pixel_index];
 	for(new i = 0; i < 4; i++)
@@ -508,7 +506,8 @@ stock Screen_SetPixelColor(width, height, color_id)
 
 	g_screen_color[height][width] = color;
 
-	format(g_screen_line[height][line_type], SCREEN_LINE_SIZE, line);
+	//format(g_screen_line[height][line_type], SCREEN_LINE_SIZE, line);
+	g_screen_line[height][line_type] = line;
 	TextDrawSetString(g_screen_line_td[height][line_type], g_screen_line[height][line_type]);
 
 	return 1;

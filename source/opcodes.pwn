@@ -1,3 +1,8 @@
+//----------------------------------------------------
+//
+// File Author: Roman Shadow (lacostek)
+//
+//----------------------------------------------------
 #if defined _GAMEBOY_OPCODES
 #endinput
 #endif
@@ -561,119 +566,136 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
 {
     new E_OPCODE_TYPE: op_type = op_info[E_OP_TYPE];
 
+    #if defined DEBUG_OPCODES
+    if(!g_mmu[E_BOOTROM_MAPPED])
+    {
+        new E_CPU_ARG_TYPE: op_arg_1 = op_info[E_OP_ARG_1];
+        new E_CPU_ARG_TYPE: op_arg_2 = op_info[E_OP_ARG_2];
+
+        printf("CALL_INSTR: %s | ARG1: %s | ARG2: %s | CYCLES: %d", g_cpu_opcode_name[_:op_type], g_cpu_arg_name[_:op_arg_1], g_cpu_arg_name[_:op_arg_2], op_info[E_OP_CYCLES]);
+    }
+    #endif
+
     switch(op_type)
     {
-        case OP_NOP:
+        case OP_NOP: // check 08.11.2025
         {
-            // Nop
+            return;
         }
-        case OP_DI:
+        case OP_DI: // check 08.11.2025
         {
             g_cpu[CPU_IME] = 0;
         }
-        case OP_EI:
+        case OP_EI: // check 08.11.2025
         {
             g_cpu[CPU_IME_DELAY] = 1;
         }
-        case OP_DAA:
+        case OP_DAA: // check 08.11.2025
         {
-            new a = g_cpu[CPU_A];
-            new correction = CPU_GetCarryFlag() ? 0x60 : 0x00;
+            new cpu_a = g_cpu[CPU_A];
+            new carry = CPU_GetCarryFlag();
+            new half_carry = CPU_GetHalfCarryFlag();
+            new negative = CPU_GetNegativeFlag();
 
-            if(CPU_GetHalfCarryFlag() || (!CPU_GetNegativeFlag() && (a & 0xF) > 9))
-            {
+            new correction = carry ? 0x60 : 0x00;
+
+            if(half_carry || (!negative && (cpu_a & 0xF) > 9))
                 correction |= 0x06;
-            } 
-            
-            if(CPU_GetCarryFlag() || (!CPU_GetNegativeFlag() && a > 0x99))
-            {
+
+            if(carry || (!negative && cpu_a > 0x99))
                 correction |= 0x60;
-            }
 
-            if(CPU_GetNegativeFlag())
-                a -= correction;
+            if(negative)
+                cpu_a -= correction;
             else
-                a += correction;
+                cpu_a += correction;
 
-            CPU_SetZeroFlag(a == 0);
-            CPU_SetHalfCarryFlag(false);
+            cpu_a = UINT8(cpu_a);
+
+            CPU_SetZeroFlag(cpu_a == 0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(correction >= 0x60);
 
-            g_cpu[CPU_A] = a;
+            g_cpu[CPU_A] = cpu_a;
         }
-        case OP_CPL:
+        case OP_CPL: // check 08.11.2025
         {
             g_cpu[CPU_A] = ~g_cpu[CPU_A];
-            CPU_SetNegativeFlag(true);
-            CPU_SetHalfCarryFlag(true);
+            CPU_SetNegativeFlag(1);
+            CPU_SetHalfCarryFlag(1);
         }
-        case OP_SCF:
+        case OP_SCF: // check 08.11.2025
         {
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
-            CPU_SetCarryFlag(true);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
+            CPU_SetCarryFlag(1);
         }
-        case OP_CCF:
+        case OP_CCF: // check 08.11.2025
         {
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(!CPU_GetCarryFlag());
         }
-        case OP_HALT:
+        case OP_HALT: // check 08.11.2025
         {
             g_cpu[CPU_HALTED] = true;
+
+            if(g_cpu[CPU_IME] == 0 && (g_mmu[E_IE] & g_mmu[E_IF] & 0x1F) != 0) 
+            {
+                g_cpu[CPU_PC]--;
+            }
         }
-        case OP_INC8:
+        case OP_INC8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
 
             new half_sum = (v & 0xF) + 1;
-            new r = v + 1;
+            new r = UINT8(v + 1);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
+            CPU_SetNegativeFlag(0);
             CPU_SetHalfCarryFlag(half_sum > 0xF);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_INC16:
+        case OP_INC16: // check 08.11.2025
         {
             new v = GB_CPU_Get(op_info[E_OP_ARG_1]);
-            new r = v + 1;
+            new r = UINT16(v + 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_DEC8:
+        case OP_DEC8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = (v - 1) & 0xFF; // (fix_uint8)
-
-            new half_sum = (v & 0xF) - 1;
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8(v - 1);
+            //new half_sum = (v & 0xF) - 1;
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(true);
-            CPU_SetHalfCarryFlag(half_sum > 0xF);
+            CPU_SetNegativeFlag(1);
+            //CPU_SetHalfCarryFlag(half_sum > 0xF);
+            CPU_SetHalfCarryFlag((v & 0xF) < 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_DEC16:
+        case OP_DEC16: // check 08.11.2025
         {
             new v = GB_CPU_Get(op_info[E_OP_ARG_1]);
-            new r = v - 1;
+            new r = UINT16(v - 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_LD8:
+        case OP_LD8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_2]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_2]));
             GB_CPU_Set(op_info[E_OP_ARG_1], v);
         }
-        case OP_LD16:
+        case OP_LD16: // check 08.11.2025
         {
             new v = GB_CPU_Get(op_info[E_OP_ARG_2]);
             GB_CPU_Set(op_info[E_OP_ARG_1], v);
         }
-        case OP_LD16_SP:
+        case OP_LD16_SP: // check 08.11.2025
         {
             new address = GB_MMU_Read16(g_cpu[CPU_PC]);
             new sp = g_cpu[CPU_SP];
@@ -683,175 +705,193 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
             GB_MMU_Write(address, sp & 0xFF);
             GB_MMU_Write(address + 1, sp >> 8);
         }
-        case OP_LD_HL_SP:
+        case OP_LD_HL_SP: // check 08.11.2025
         {
-            new v = int8_from_uint8(GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF); // (int8)
+            /*new v = INT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new sp = g_cpu[CPU_SP];
 
-            new sum8 = ((sp & 0xFF) & 0xFFFF) + ((v & 0xFF) & 0xFFFF); // (uint16) (uint16)
+            new sum8 = UINT16(sp) + UINT16(v);
             new sum16 = sp + v;
             new half_sum = (sp & 0xF) + (v & 0xF);
-            new r = sum16 & 0xFFFF; // (uint16)
+            new r = UINT16(sum16);
 
-            CPU_SetZeroFlag(false);
-            CPU_SetNegativeFlag(false);
+            CPU_SetZeroFlag(0);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(half_sum > 0xF);
+            CPU_SetCarryFlag(sum8 > 0xFF);
+
+            CPU_SET_HL(g_cpu, r);*/
+
+            new v = INT8(GB_CPU_Get(op_info[E_OP_ARG_1]));  // Signed d8
+            new sp = g_cpu[CPU_SP];
+            new r = UINT16(sp + v);  // HL = sp + v mod 65536
+            new low_sp = UINT8(sp);  // Low byte unsigned
+            new low_v = UINT8(v);  // Low byte unsigned (0xFF for -1)
+            new sum8 = low_sp + low_v;  // Unsigned add for C
+            new half_sum = (low_sp & 0xF) + (low_v & 0xF);  // Unsigned for H
+
+            CPU_SetZeroFlag(0);
+            CPU_SetNegativeFlag(0);
             CPU_SetHalfCarryFlag(half_sum > 0xF);
             CPU_SetCarryFlag(sum8 > 0xFF);
 
             CPU_SET_HL(g_cpu, r);
         }
-        case OP_ADD_A:
+        case OP_ADD_A: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new a = g_cpu[CPU_A];
 
-            new sum = (a & 0xFFFF) + (v & 0xFFFF); // (uint16) (uint16)
+            new sum = UINT16(a) + UINT16(v);
             new half_sum = (a & 0xF) + (v & 0xF);
-            new r = sum & 0xFF; // (uint8)
+            new r = UINT8(sum);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
+            CPU_SetNegativeFlag(0);
             CPU_SetHalfCarryFlag(half_sum > 0xF);
             CPU_SetCarryFlag(sum > 0xFF);
 
             g_cpu[CPU_A] = r;
         }
-        case OP_ADD_SP:
+        case OP_ADD_SP: // check 08.11.2025
         {
-            new v = int8_from_uint8(GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF); // (int8)
+            new v = INT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new sp = g_cpu[CPU_SP];
 
-            new sum8 = ((sp & 0xFF) & 0xFFFF) + ((v & 0xFF) & 0xFFFF); // (uint16) (uint16)
+            new sum8 = UINT16(sp & 0xFF) + UINT16(v & 0xFF);
             new sum16 = sp + v;
             new half_sum = (sp & 0xF) + (v & 0xF);
-            new r = sum16 & 0xFFFF; // (uint16)
+            new r = UINT16(sum16);
 
-            CPU_SetZeroFlag(false);
-            CPU_SetNegativeFlag(false);
+            CPU_SetZeroFlag(0);
+            CPU_SetNegativeFlag(0);
             CPU_SetHalfCarryFlag(half_sum > 0xF);
             CPU_SetCarryFlag(sum8 > 0xFF);
 
             g_cpu[CPU_SP] = r;
         }
-        case OP_ADD_HL:
+        case OP_ADD_HL: // check 08.11.2025
         {
             new v = GB_CPU_Get(op_info[E_OP_ARG_1]);
             new hl = CPU_GET_HL(g_cpu);
 
             new half_sum = (hl & 0x0FFF) + (v & 0x0FFF);
             new sum = hl + v;
-            new r = sum & 0xFFFF; // (uint16)
+            new r = UINT16(sum);
 
-            CPU_SetNegativeFlag(false);
+            CPU_SetNegativeFlag(0);
             CPU_SetHalfCarryFlag(half_sum > 0x0FFF);
             CPU_SetCarryFlag(sum > 0xFFFF);
 
             CPU_SET_HL(g_cpu, r);
         }
-        case OP_ADC8:
+        case OP_ADC8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new c = CPU_GetCarryFlag();
             new a = g_cpu[CPU_A];
 
-            new sum = (a & 0xFFFF) + (v & 0xFFFF) + (c & 0xFFFF); // (uint16) (uint16) (uint16)
+            new sum = UINT16(a) + UINT16(v) + UINT16(c);
             new half_sum = (a & 0xF) + (v & 0xF) + c;
-            new r = sum & 0xFF; // (uint8)
+            new r = UINT8(sum);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
+            CPU_SetNegativeFlag(0);
             CPU_SetHalfCarryFlag(half_sum > 0xF);
             CPU_SetCarryFlag(sum > 0xFF);
 
             g_cpu[CPU_A] = r;
         }
-        case OP_SUB8:
+        case OP_SUB8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new a = g_cpu[CPU_A];
+
+            //new sum = UINT16(a) - UINT16(v);
+            //new half_sum = (a & 0xF) - (v & 0xF);
+            new r = UINT8(a - v);
+
+            CPU_SetZeroFlag(r == 0);
+            CPU_SetNegativeFlag(1);
+            //CPU_SetHalfCarryFlag(half_sum > 0xF);
+            //CPU_SetCarryFlag(sum > 0xFF);
+            CPU_SetHalfCarryFlag((a & 0xF) < (v & 0xF));
+            CPU_SetCarryFlag(a < v);
+
+            g_cpu[CPU_A] = r;
+        }
+        case OP_SBC8: // check 08.11.2025
+        {
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new c = CPU_GetCarryFlag();
             new a = g_cpu[CPU_A];
             
-            new sum = (a & 0xFFFF) - (v & 0xFFFF); // (uint16) (uint16)
-            new half_sum = (a & 0xF) - (v & 0xF);
-            new r = sum & 0xFF; // (uint8)
-
+            new sub = v + c;
+            new r = UINT8(a - sub);
+            
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(true);
-            CPU_SetHalfCarryFlag(half_sum > 0xF);
-            CPU_SetCarryFlag(sum > 0xFF);
-
+            CPU_SetNegativeFlag(1);
+            CPU_SetHalfCarryFlag(((a & 0xF) - (v & 0xF) - c) < 0);
+            CPU_SetCarryFlag(((a & 0xFF) - (v & 0xFF) - c) < 0);
+            
             g_cpu[CPU_A] = r;
         }
-        case OP_SBC8:
+        case OP_AND8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new c = CPU_GetCarryFlag() ? 1 : 0;
-            new a = g_cpu[CPU_A];
-
-            new sum = (a & 0xFFFF) - (v & 0xFFFF) - (c & 0xFFFF); // (uint16) (uint16) (uint16)
-            new half_sum = (a & 0xF) - (v & 0xF) - c;
-            new r = sum & 0xFF; // (uint8)
-
-            CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(true);
-            CPU_SetHalfCarryFlag(half_sum > 0xF);
-            CPU_SetCarryFlag(sum > 0xFF);
-
-            g_cpu[CPU_A] = r;
-        }
-        case OP_AND8:
-        {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new a = g_cpu[CPU_A];
             new r = a & v;
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(true);
-            CPU_SetCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(1);
+            CPU_SetCarryFlag(0);
 
             g_cpu[CPU_A] = r;
         }
-        case OP_XOR8:
+        case OP_XOR8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new a = g_cpu[CPU_A];
-            new r = a ^ v;
+            new r = UINT8(a ^ v);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
-            CPU_SetCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
+            CPU_SetCarryFlag(0);
 
             g_cpu[CPU_A] = r;
         }
-        case OP_OR8:
+        case OP_OR8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new a = g_cpu[CPU_A];
-            new r = a | v;
+            new r = UINT8(a | v);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
-            CPU_SetCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
+            CPU_SetCarryFlag(0);
 
             g_cpu[CPU_A] = r;
         }
-        case OP_CP8:
+        case OP_CP8: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new a = g_cpu[CPU_A];
 
-            new sum = (a & 0xFFFF) - (v & 0xFFFF); // (uint16) (uint16)
-            new half_sum = (a & 0xF) - (v & 0xF);
-            new r = sum & 0xFF; // (uint8)
+            //new sum = UINT16(a) - UINT16(v);
+            //new half_sum = (a & 0xF) - (v & 0xF);
+            new r = UINT8(a - v);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(true);
-            CPU_SetHalfCarryFlag(half_sum > 0xF);
-            CPU_SetCarryFlag(sum > 0xFF);
+            CPU_SetNegativeFlag(1);
+            //CPU_SetHalfCarryFlag(half_sum > 0xF);
+            //CPU_SetCarryFlag(sum > 0xFF);
+            CPU_SetHalfCarryFlag((a & 0xF) < (v & 0xF));
+            CPU_SetCarryFlag(a < v);
         }
-        case OP_POP16:
+        case OP_POP16: // check 08.11.2025
         {
             new v = GB_CPU_Pop();
 
@@ -862,20 +902,20 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
 
             GB_CPU_Set(op_info[E_OP_ARG_1], v);
         }
-        case OP_PUSH16:
+        case OP_PUSH16: // check 08.11.2025
         { 
             new v = GB_CPU_Get(op_info[E_OP_ARG_1]);
             GB_CPU_Push(v);
         }
-        case OP_JR8:
+        case OP_JR8: // check 08.11.2025
         {
-            new offset = int8_from_uint8(GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF); // (int8)
+            new offset = INT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             g_cpu[CPU_PC] += offset;
         }
-        case OP_JR8_IF:
+        case OP_JR8_IF: // check 08.11.2025
         {
             new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
-            new offset = int8_from_uint8(GB_CPU_Get(op_info[E_OP_ARG_2]) & 0xFF); // (int8)
+            new offset = INT8(GB_CPU_Get(op_info[E_OP_ARG_2]));
 
             if(flag) 
             {
@@ -883,10 +923,10 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_STEP] += 1;
             }
         }
-        case OP_JR8_IFN:
+        case OP_JR8_IFN: // check 08.11.2025
         {
             new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
-            new offset = int8_from_uint8(GB_CPU_Get(op_info[E_OP_ARG_2]) & 0xFF); // (int8)
+            new offset = INT8(GB_CPU_Get(op_info[E_OP_ARG_2]));
 
             if(!flag) 
             {
@@ -894,12 +934,11 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_STEP] += 1;
             }
         }
-        case OP_JP16:
+        case OP_JP16: // check 08.11.2025
         {
-            new address = GB_CPU_Get(op_info[E_OP_ARG_1]);
-            g_cpu[CPU_PC] = address;
+            g_cpu[CPU_PC] = GB_CPU_Get(op_info[E_OP_ARG_1]);
         }
-        case OP_JP16_IF:
+        case OP_JP16_IF: // check 08.11.2025
         {
             new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
             new addr = GB_CPU_Get(op_info[E_OP_ARG_2]);
@@ -910,7 +949,7 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_STEP] += 1;
             }
         }
-        case OP_JP16_IFN:
+        case OP_JP16_IFN: // check 08.11.2025
         {
             new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
             new addr = GB_CPU_Get(op_info[E_OP_ARG_2]);
@@ -921,15 +960,15 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_STEP] += 1;
             }
         }
-        case OP_CALL:
+        case OP_CALL: // check 08.11.2025
         {
             new addr = GB_CPU_Get(op_info[E_OP_ARG_1]);
             GB_CPU_Push(g_cpu[CPU_PC]);
             g_cpu[CPU_PC] = addr;
         }
-        case OP_CALL_IF:
+        case OP_CALL_IF: // check 08.11.2025
         {
-            new flag = GB_CPU_Get(op_info[E_OP_ARG_1]) != 0;
+            new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
             new addr = GB_CPU_Get(op_info[E_OP_ARG_2]);
 
             if(flag) 
@@ -939,9 +978,9 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_PC] = addr;
             }
         }
-        case OP_CALL_IFN:
+        case OP_CALL_IFN: // check 08.11.2025
         {
-            new flag = GB_CPU_Get(op_info[E_OP_ARG_1]) != 0;
+            new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
             new addr = GB_CPU_Get(op_info[E_OP_ARG_2]);
 
             if(!flag) 
@@ -951,17 +990,17 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_PC] = addr;
             }
         }
-        case OP_RET:
+        case OP_RET: // check 08.11.2025
         {
             g_cpu[CPU_PC] = GB_CPU_Pop();
         }
-        case OP_RETI:
+        case OP_RETI: // check 08.11.2025
         {
             g_cpu[CPU_PC] = GB_CPU_Pop();
-            g_cpu[CPU_IME] = 1; // looks like not delayed unlike EI
+            g_cpu[CPU_IME] = 1;
             g_cpu[CPU_IME_DELAY] = -1;
         }
-        case OP_RET_IF:
+        case OP_RET_IF: // check 08.11.2025
         {
             new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
 
@@ -971,7 +1010,7 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_STEP] += 3;
             }
         }
-        case OP_RET_IFN:
+        case OP_RET_IFN: // check 08.11.2025
         {
             new flag = GB_CPU_Get(op_info[E_OP_ARG_1]);
 
@@ -981,175 +1020,175 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
                 g_cpu[CPU_STEP] += 3;
             }
         }
-        case OP_RST:
+        case OP_RST: // check 08.11.2025
         {
             new addr = GB_CPU_Get(op_info[E_OP_ARG_1]);
             GB_CPU_Push(g_cpu[CPU_PC]);
             g_cpu[CPU_PC] = addr;
         }
-        case OP_RLCA:
+        case OP_RLCA: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF;  // (uint8)
-            new r = ((v << 1) | (v >> 7)) & 0xFF;  // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v << 1) | (v >> 7));
 
-            CPU_SetZeroFlag(false);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetZeroFlag(0);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag((v >> 7) & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_RLA:
+        case OP_RLA: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = ((v << 1) | CPU_GetCarryFlag()) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v << 1) | CPU_GetCarryFlag());
 
-            CPU_SetZeroFlag(false);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetZeroFlag(0);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag((v >> 7) & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_RRCA:
+        case OP_RRCA: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF;  // (uint8)
-            new r = ((v >> 1) | (v << 7)) & 0xFF;  // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v >> 1) | (v << 7));
 
-            CPU_SetZeroFlag(false);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetZeroFlag(0);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(v & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_RRA:
+        case OP_RRA: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = ((v >> 1) | (CPU_GetCarryFlag() << 7)) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v >> 1) | (CPU_GetCarryFlag() << 7));
             
-            CPU_SetZeroFlag(false);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetZeroFlag(0);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(v & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_RLC:
+        case OP_RLC: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = ((v << 1) | (v >> 7)) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v << 1) | (v >> 7));
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag((v >> 7) & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_RRC:
+        case OP_RRC: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = ((v >> 1) | (v << 7)) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v >> 1) | (v << 7));
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(v & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_RL:
+        case OP_RL: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = ((v << 1) | CPU_GetCarryFlag()) & 0xFF;  // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v << 1) | CPU_GetCarryFlag());
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag((v >> 7) & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_RR:
+        case OP_RR: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = ((v >> 1) | (CPU_GetCarryFlag() << 7)) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8((v >> 1) | (CPU_GetCarryFlag() << 7));
             
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(v & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_SLA:
+        case OP_SLA: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new r = (v << 1) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new r = UINT8(v << 1);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag((v >> 7) & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_SRA:
+        case OP_SRA: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new r = (v >> 1) | (v & 0x80);
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(v & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_SWAP:
+        case OP_SWAP: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
-            new l = ((v & 0x0F) << 4) & 0xFF; // (uint8)
-            new h = ((v & 0xF0) >> 4) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
+            new l = UINT8((v & 0x0F) << 4);
+            new h = UINT8((v & 0xF0) >> 4);
             new r = l | h;
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
-            CPU_SetCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
+            CPU_SetCarryFlag(0);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_SRL:
+        case OP_SRL: // check 08.11.2025
         {
-            new v = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new v = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new r = v >> 1;
 
             CPU_SetZeroFlag(r == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(false);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(0);
             CPU_SetCarryFlag(v & 1);
 
             GB_CPU_Set(op_info[E_OP_ARG_1], r);
         }
-        case OP_BIT:
+        case OP_BIT: // check 08.11.2025
         {
-            new bit = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new bit = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             new v = GB_CPU_GetBit(op_info[E_OP_ARG_2], bit);
 
             CPU_SetZeroFlag(v == 0);
-            CPU_SetNegativeFlag(false);
-            CPU_SetHalfCarryFlag(true);
+            CPU_SetNegativeFlag(0);
+            CPU_SetHalfCarryFlag(1);
         }
-        case OP_RES:
+        case OP_RES: // check 08.11.2025
         {
-            new bit = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new bit = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             GB_CPU_SetBit(op_info[E_OP_ARG_2], bit, 0);
         }
-        case OP_SET:
+        case OP_SET: // check 08.11.2025
         {
-            new bit = GB_CPU_Get(op_info[E_OP_ARG_1]) & 0xFF; // (uint8)
+            new bit = UINT8(GB_CPU_Get(op_info[E_OP_ARG_1]));
             GB_CPU_SetBit(op_info[E_OP_ARG_2], bit, 1);
         }
     }

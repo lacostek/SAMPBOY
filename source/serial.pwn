@@ -42,7 +42,14 @@ stock GB_Serial_Write(address, value)
 	switch(address)
 	{
 		case 0xFF01: g_serial[SERIAL_BYTE] = value;
-		case 0xFF02: g_serial[SERIAL_CTRL] = value;
+		case 0xFF02:
+		{
+			g_serial[SERIAL_CTRL] = value;
+			if((value & 0x81) == 0x81) 
+			{
+                printf("[Serial] %c", g_serial[SERIAL_BYTE]);
+            }
+		}
 #if defined _ENABLE_CRITICAL_LOG
 		default:
 			printf("[SERIAL]: unhandled serial write at 0x%04x", address);

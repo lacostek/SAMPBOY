@@ -57,6 +57,9 @@ stock GB_MMU_Read_ROM(address)
 
 stock GB_MMU_Read(address)
 {
+	/*if(address == 0xFF44) 
+        return 0x90;*/
+
 	switch(address)
 	{
 		case 
@@ -157,7 +160,6 @@ stock GB_MMU_Write(address, value)
 		}
 		case 0xFF10..0xFF3F: // Sound
 		{
-			return 0;
 		}
 		case
 			0xFF40..0xFF4B, // PPU registers
@@ -168,7 +170,6 @@ stock GB_MMU_Write(address, value)
 		}
 		case 0xFEA0..0xFEFF: // Unusable
 		{ 
-			return 0;
 		}
 		case 0xFF80..0xFFFE: // HRAM
 		{ 
@@ -196,7 +197,6 @@ stock GB_MMU_Write(address, value)
 		}
 #endif
 	}
-	return 0;
 }
 
 stock GB_MMU_Read16(address)

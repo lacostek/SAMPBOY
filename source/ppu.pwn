@@ -292,8 +292,15 @@ stock GB_PPU_Write(address, value)
 
 stock GB_PPU_TileAddress(tile_id)
 {
-	new address = LCDC_Get(LCDC_BG_TILEDATA) ? 0x8000 : 0x9000;
-	return address + tile_id * 16;
+    if (LCDC_Get(LCDC_BG_TILEDATA))
+    {
+        return 0x8000 + tile_id * 16;
+    }
+    else
+    {
+        new signed_id = (tile_id & 0x80) ? (tile_id - 256) : tile_id;
+        return 0x9000 + signed_id * 16;
+    }
 }
 
 stock GB_PPU_GetColorID(d0, d1, x)

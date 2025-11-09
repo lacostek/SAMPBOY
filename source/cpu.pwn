@@ -29,7 +29,8 @@ stock GB_CPU_Reset()
 
 	g_cpu[CPU_HALTED] = false;
 	g_cpu[CPU_IME_DELAY] = -1;
-	g_cpu[CPU_CYCLE] = 0;
+	g_cpu[CPU_CYCLE][0] = 0;
+	g_cpu[CPU_CYCLE][1] = 0;
 	g_cpu[CPU_STEP] = 0;
 }
 
@@ -50,7 +51,7 @@ stock GB_CPU_Get(E_CPU_ARG_TYPE: arg_type)
 			ARG_BIT_6,
 			ARG_BIT_7:
 		{
-			value = (_:arg_type - _:ARG_BIT_0) & 0xFFFF;
+			value = UINT16(_:arg_type - _:ARG_BIT_0);
 		}
 		case 
 			ARG_RST_0,
@@ -161,11 +162,11 @@ stock GB_CPU_Get(E_CPU_ARG_TYPE: arg_type)
 		}
 		case ARG_FLAG_CARRY:
 		{
-			value = CPU_GetCarryFlag();
+			value = UINT16(CPU_GetCarryFlag());
 		}
 		case ARG_FLAG_ZERO:
 		{
-			value = CPU_GetZeroFlag();
+			value = UINT16(CPU_GetZeroFlag());
 		}
 #if defined _ENABLE_WARNING_LOG
 		default:
@@ -174,44 +175,59 @@ stock GB_CPU_Get(E_CPU_ARG_TYPE: arg_type)
 		}
 #endif
 	}
+
+	if(value > 0xFFFF || value < 0)
+	{
+		printf("[CRITICAL]: GB_CPU_Get value is not 16 bit (arg_type = %s, value16 = %d)", g_cpu_arg_name[_:arg_type], value);
+		value = UINT16(value);
+	}
+
 	return value;
 }
 
-stock GB_CPU_Set(E_CPU_ARG_TYPE: arg_type, value32)
+stock GB_CPU_Set(E_CPU_ARG_TYPE: arg_type, value16)
 {
-	new value = value32 & 0xFF;
-	new value16 = value32 & 0xFFFF;
+	if(arg_type == ARG_NONE)
+		return;
+
+	if(value16 > 0xFFFF || value16 < 0)
+	{
+		printf("[CRITICAL]: GB_CPU_Set value is not 16 bit (arg_type = %s, value16 = %d)", g_cpu_arg_name[_:arg_type], value16);
+		return;
+	}
+
+	new value8 = UINT8(value16);
 	new address;
 
 	switch(arg_type)
 	{
 		case ARG_REG_A:
 		{
-			g_cpu[CPU_A] = value;
+			g_cpu[CPU_A] = value8;
 		}
 		case ARG_REG_B:
 		{
-			g_cpu[CPU_B] = value;
+			g_cpu[CPU_B] = value8;
 		}
 		case ARG_REG_C:
 		{
-			g_cpu[CPU_C] = value;
+			g_cpu[CPU_C] = value8;
 		}
 		case ARG_REG_D:
 		{
-			g_cpu[CPU_D] = value;
+			g_cpu[CPU_D] = value8;
 		}
 		case ARG_REG_E:
 		{
-			g_cpu[CPU_E] = value;
+			g_cpu[CPU_E] = value8;
 		}
 		case ARG_REG_H:
 		{
-			g_cpu[CPU_H] = value;
+			g_cpu[CPU_H] = value8;
 		}
 		case ARG_REG_L:
 		{
-			g_cpu[CPU_L] = value;
+			g_cpu[CPU_L] = value8;
 		}
 		case ARG_REG_AF:
 		{
@@ -236,39 +252,39 @@ stock GB_CPU_Set(E_CPU_ARG_TYPE: arg_type, value32)
 		case ARG_IND_C:
 		{
 			address = 0xFF00 + g_cpu[CPU_C];
-			GB_MMU_Write(address, value);
+			GB_MMU_Write(address, value8);
 		}
 		case ARG_IND_BC:
 		{
-			GB_MMU_Write(CPU_GET_BC(g_cpu), value);
+			GB_MMU_Write(CPU_GET_BC(g_cpu), value8);
 		}
 		case ARG_IND_DE:
 		{
-			GB_MMU_Write(CPU_GET_DE(g_cpu), value);
+			GB_MMU_Write(CPU_GET_DE(g_cpu), value8);
 		}
 		case ARG_IND_HL:
 		{
-			GB_MMU_Write(CPU_GET_HL(g_cpu), value);
+			GB_MMU_Write(CPU_GET_HL(g_cpu), value8);
 		}
 		case ARG_IND_HLI:
 		{
-			GB_MMU_Write(CPU_GET_HL(g_cpu), value); 
+			GB_MMU_Write(CPU_GET_HL(g_cpu), value8); 
 			CPU_SET_HL(g_cpu, CPU_GET_HL(g_cpu) + 1);
 		}
 		case ARG_IND_HLD:
 		{
-			GB_MMU_Write(CPU_GET_HL(g_cpu), value); 
+			GB_MMU_Write(CPU_GET_HL(g_cpu), value8); 
 			CPU_SET_HL(g_cpu, CPU_GET_HL(g_cpu) - 1);
 		}
 		case ARG_IND_8:
 		{
 			address = 0xFF00 + GB_MMU_Read(g_cpu[CPU_PC]++);
-			GB_MMU_Write(address, value);
+			GB_MMU_Write(address, value8);
 		}
 		case ARG_IND_16:
 		{
 			address = GB_MMU_Read16(g_cpu[CPU_PC]);
-			GB_MMU_Write(address, value);
+			GB_MMU_Write(address, value8);
 			g_cpu[CPU_PC] += 2;
 		}
 #if defined _ENABLE_WARNING_LOG
@@ -283,12 +299,12 @@ stock GB_CPU_Set(E_CPU_ARG_TYPE: arg_type, value32)
 stock GB_CPU_GetBit(E_CPU_ARG_TYPE: arg_type, bit)
 {
 	new value = GB_CPU_Get(arg_type);
-	return (value >> bit & 7) & 1;
+	return (value >> (bit & 7)) & 1;
 }
 
 stock GB_CPU_SetBit(E_CPU_ARG_TYPE: arg_type, bit, value)
 {
-	new _value = GB_CPU_Get(arg_type) & 0xFF;
+	new _value = UINT8(GB_CPU_Get(arg_type));
 
 	bit &= 7;
 	_value &= ~(1 << bit);
@@ -310,7 +326,7 @@ stock GB_CPU_Pop()
 	return value;
 }
 
-stock GB_CPU_Interrput_Enabled()
+stock bool:GB_CPU_Interrput_Enabled()
 {
 	return g_cpu[CPU_IME] != 0;
 }
@@ -360,11 +376,11 @@ stock GB_CPU_Execute(op_cpu[E_GB_CPU_OPCODE_INFO])
 		return 0;
 	}
 
-	if(g_cpu[CPU_IME_DELAY] != -1)
-	{
-		g_cpu[CPU_IME] = g_cpu[CPU_IME_DELAY] & 0xFF;
+    /*if(g_cpu[CPU_IME_DELAY] != -1)
+    {
+		g_cpu[CPU_IME] = g_cpu[CPU_IME_DELAY];
 		g_cpu[CPU_IME_DELAY] = -1;
-	}
+    }*/
 
 	GB_Opcodes_Call(op_cpu);
 
@@ -386,6 +402,12 @@ stock GB_CPU_Step()
 	GB_CPU_Execute(op_cpu);
 
 	g_cpu[CPU_STEP] = op_cpu[E_OP_CYCLES] - 1;
+
+	if(g_cpu[CPU_IME_DELAY] != -1)
+    {
+		g_cpu[CPU_IME] = g_cpu[CPU_IME_DELAY];
+		g_cpu[CPU_IME_DELAY] = -1;
+    }
 
 	return 1;
 }
