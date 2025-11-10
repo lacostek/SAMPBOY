@@ -18,9 +18,9 @@
 // Config
 #define SCRIPT_NAME     "SAMPBOY - Emulator GameBoy Classic in open.mp server"
 
-#define VERSION_MAJOR 0
+#define VERSION_MAJOR 1
 #define VERSION_MINOR 0
-#define VERSION_PATCH 8
+#define VERSION_PATCH 0
 /*
 #define _DEBUG
 #define _ENABLE_WARNING_LOG
@@ -36,6 +36,8 @@
 #define OPTIONS_FILE 	"roms.ini"
 
 #define DIALOG_SELECT_ROM 31000
+
+#define CPU_TICKS_PER_FRAME 24
 
 //----------------------------------------------------
 #include "helper.inc"
@@ -60,7 +62,8 @@
 new
 	gb_process_ticks = 0,
 	tick_interval = 1,
-	should_stop_timer = 0;
+	should_stop_timer = 0,
+	gb_player = INVALID_PLAYER_ID;
 
 //new CPU_CYCLES_TIME;
 
@@ -130,8 +133,10 @@ stock HandleInput()
 
 	GB_MMU_Interrupt_Clear(INT_JOYPAD);
 	GB_Joypad_Clear();
+	
+	Screen_GetPlayerInput(gb_player);
 
-	for(new i = 0; i < sizeof buttons; i++)
+	for(new i = 0; i < sizeof(buttons); i++)
 	{
 		if(Screen_IsButtonPressed(buttons[i]))
 		{
@@ -139,7 +144,6 @@ stock HandleInput()
 			GB_MMU_Interrupt_Set(INT_JOYPAD);
 
 			Screen_ReleaseButton();
-
 			return 1;
 		}
 	}
@@ -157,37 +161,29 @@ public SAMPBOY_Process()
 
 	tick_interval = 1;
 
-	if(gb_process_ticks % 4 == 0)
+	for(new i = 0; i < CPU_TICKS_PER_FRAME; i++)
 	{
-		HandleInterrupts();
-		GB_CPU_Step();
-	}
-
-	#if defined CPU_CYCLES_TIME
-	if(gb_process_ticks % 4_194_304 == 0)
-	{
-		new elapsed_ms = GetTickCount() - CPU_CYCLES_TIME;
-
-		if(elapsed_ms > 0)
+		if(gb_process_ticks % 4 == 0)
 		{
-			new cpu_freq = (4194304 * 100) / (elapsed_ms * 1000);
-			printf("GB-CPU: %dms | %d.%02d MHz (%.1fx)", elapsed_ms, cpu_freq / 100, cpu_freq % 100, float((1000 * 10) / elapsed_ms) / 10.0);
+			HandleInterrupts();
+			GB_CPU_Step();
 		}
-		CPU_CYCLES_TIME = GetTickCount();
-	}
-	#endif
 
-	GB_Timer_Step();
-	GB_PPU_Step();
-	GB_MMU_DMA_Step();
+		GB_Timer_Step();
+		GB_PPU_Step();
+		GB_MMU_DMA_Step();
+
+		gb_process_ticks++;
+	}
 
 	if(GB_PPU_Vblank_Interrupt())
 	{
 		GB_MMU_Interrupt_Set(INT_VBLANK);
 
-		new value = HandleInput();
+		//new value = HandleInput();
+		HandleInput();
 
-		if(!g_mmu[E_BOOTROM_MAPPED] && !value)
+		if(!g_mmu[E_BOOTROM_MAPPED]/* && !value*/)
 		{
 			tick_interval = 2;
 		}
@@ -202,8 +198,6 @@ public SAMPBOY_Process()
 	{
 		GB_MMU_Interrupt_Set(INT_TIMER);
 	}
-
-	gb_process_ticks++;
 
 	return SetTimer("SAMPBOY_Process", tick_interval, false);
 }
@@ -247,6 +241,7 @@ stock SAMPBOY_Stop()
 	should_stop_timer = 1;
 	gb_process_ticks = 0;
 	tick_interval = 1;
+	gb_player = INVALID_PLAYER_ID;
 }
 
 stock SAMPBOY_ShowRomsList(playerid)
@@ -310,6 +305,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if(g_gb_roms_list[listitem][0] != '\0')
 			{
+				gb_player = playerid;
 				SAMPBOY_Start(g_gb_roms_list[listitem]);
 			}
 		}
@@ -327,6 +323,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	{
 		ShowGameBoyForPlayer(playerid);
 		SAMPBOY_ShowRomsList(playerid)
+
+		SendClientMessage(playerid, 0xFFFFFFFF, "{FFD97A}=== GameBoy Emulator ===");
+		SendClientMessage(playerid, 0xFFFFFFFF, "Commands: {FFD97A}/stopgb{FFFFFF}, {FFD97A}/resetgb{FFFFFF}, {FFD97A}/keys_control");
+		SendClientMessage(playerid, 0xFFFFFFFF, "Use {FFD97A}/keys_control{FFFFFF} to enable new experimental controls!");
+		SendClientMessage(playerid, 0xFFFFFFFF, "DPAD: {FFD97A}W{FFFFFF} / {FFD97A}A{FFFFFF} / {FFD97A}S{FFFFFF} / {FFD97A}D");
+		SendClientMessage(playerid, 0xFFFFFFFF, "A: {FFD97A}Fire{FFFFFF} (Left Ctrl / Left Mouse Button)");
+		SendClientMessage(playerid, 0xFFFFFFFF, "B: {FFD97A}Aim{FFFFFF} (Right Mouse Button)");
+		SendClientMessage(playerid, 0xFFFFFFFF, "Start: {FFD97A}Crouch{FFFFFF} (C) | Select: {FFD97A}Walk{FFFFFF} (Left Alt)");
+
 		return 1;
 	}
 	else if(!strcmp(cmdtext, "/stopgb", true))
@@ -339,6 +344,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	{
 		GB_CPU_Reset();
 		GB_MMU_Reset();
+		return 1;
+	}
+	else if(!strcmp(cmdtext, "/keys_control", true))
+	{ 
+		SetSpawnInfo(playerid, NO_TEAM, 0, 0.0, 0.0, 500.0, 0.0, WEAPON_FIST, 0, WEAPON_FIST, 0, WEAPON_FIST, 0);
+		SpawnPlayer(playerid);
+
+		TogglePlayerControllable(playerid, false);
+
+		CancelSelectTextDraw(playerid);
+		SetPVarInt(playerid, "UseNewInput", 1);
+
+		SendClientMessage(playerid, 0xFFFFFFFF, "{FFD97A}[GameBoy]{FFFFFF} New experimental controls {FFD97A}enabled!");
 		return 1;
 	}
 

@@ -461,6 +461,8 @@ stock GB_PPU_RenderScanline()
 	{
 		GB_PPU_RenderSprites();
 	}
+
+	Screen_FlushLine(g_ppu[E_LY]);
 }
 
 stock GB_PPU_SetMode(E_GB_PPU_MODE: mode)

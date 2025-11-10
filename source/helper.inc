@@ -20,7 +20,6 @@ stock UINT8(value)
     return (value < 0) ? (value + 256) : (value & 0xFF);
 }
 
-//----------------------------------------------------
 stock INT16(value)
 {
     value &= 0xFFFF;
@@ -32,7 +31,6 @@ stock UINT16(value)
     return (value < 0) ? (value + 65536) : (value & 0xFFFF);
 }
 
-//----------------------------------------------------
 stock bool:IsValidINT8(value)
 {
     return (value >= -128 && value <= 127);

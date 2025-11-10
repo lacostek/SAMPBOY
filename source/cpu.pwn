@@ -193,7 +193,8 @@ stock GB_CPU_Set(E_CPU_ARG_TYPE: arg_type, value16)
 	if(value16 > 0xFFFF || value16 < 0)
 	{
 		printf("[CRITICAL]: GB_CPU_Set value is not 16 bit (arg_type = %s, value16 = %d)", g_cpu_arg_name[_:arg_type], value16);
-		return;
+		//return;
+		value16 = UINT16(value16);
 	}
 
 	new value8 = UINT8(value16);
@@ -375,12 +376,6 @@ stock GB_CPU_Execute(op_cpu[E_GB_CPU_OPCODE_INFO])
 #endif
 		return 0;
 	}
-
-    /*if(g_cpu[CPU_IME_DELAY] != -1)
-    {
-		g_cpu[CPU_IME] = g_cpu[CPU_IME_DELAY];
-		g_cpu[CPU_IME_DELAY] = -1;
-    }*/
 
 	GB_Opcodes_Call(op_cpu);
 

@@ -49,7 +49,7 @@ enum E_SCREEN_BUTTONS
 	S_BUTTON_START = 12
 };
 
-new E_JOYPAD_BUTTON: pressed_button;
+new E_JOYPAD_BUTTON: pressed_button = E_JOYPAD_BUTTON: -1;
 
 //----------------------------------------------------
 
@@ -60,6 +60,8 @@ new Text: g_screen_line_td[SCREEN_HEIGHT][SCREEN_LINE_COUNT],
 new const g_screen_pixel_map[SCREEN_LINE_WIDTH] = {1, 14, 27, ...};
 
 new Text: g_gameboy_td[22];
+
+new bool: g_screen_line_dirty[SCREEN_HEIGHT][SCREEN_LINE_COUNT];
 
 //----------------------------------------------------
 stock GenerateScreenLine(dest[], size = sizeof(dest))
@@ -447,7 +449,8 @@ stock ShowGameBoyForPlayer(playerid)
 		}
 	}
 
-	SelectTextDraw(playerid, -1);
+	if(!GetPVarInt(playerid, "UseNewInput"))
+		SelectTextDraw(playerid, -1);
 }
 
 stock HideGameBoyForPlayer(playerid)
@@ -494,29 +497,46 @@ stock Screen_SetPixelColor(width, height, color_id)
 	new line_type = group + (width % 2);
 	new pixel_index = (width % (SCREEN_LINE_WIDTH * 2)) / 2;
 
-	new line[SCREEN_LINE_SIZE];
-	line = g_screen_line[height][line_type];
-	//format(line, sizeof line, g_screen_line[height][line_type]);
-
 	new color_pixel = g_screen_pixel_map[pixel_index];
 	for(new i = 0; i < 4; i++)
 	{
-		line[color_pixel + (i * 3)] = g_screen_colors[_:color][i];
+		g_screen_line[height][line_type][color_pixel + (i * 3)] = g_screen_colors[_:color][i];
 	}
 
 	g_screen_color[height][width] = color;
-
-	//format(g_screen_line[height][line_type], SCREEN_LINE_SIZE, line);
-	g_screen_line[height][line_type] = line;
-	TextDrawSetString(g_screen_line_td[height][line_type], g_screen_line[height][line_type]);
+	g_screen_line_dirty[height][line_type] = true;
 
 	return 1;
+}
+
+stock Screen_FlushLine(height) // call ONCE after rendering scanline
+{
+	if(height < 0 || height >= SCREEN_HEIGHT)
+		return 0;
+
+	for(new i = 0; i < SCREEN_LINE_COUNT; i++)
+	{
+		if(g_screen_line_dirty[height][i])
+		{
+			TextDrawSetString(g_screen_line_td[height][i], g_screen_line[height][i]);
+			g_screen_line_dirty[height][i] = false;
+		}
+	}
+	return 1;
+}
+
+stock Screen_FlushAll()
+{
+	for(new y = 0; y < SCREEN_HEIGHT; y++)
+	{
+		Screen_FlushLine(y);
+	}
 }
 
 // JOYPAD
 stock Screen_IsButtonPressed(E_JOYPAD_BUTTON:button)
 {
-	return button == pressed_button;
+	return pressed_button == button;
 }
 
 stock Screen_ReleaseButton()
@@ -529,15 +549,62 @@ public OnPlayerClickTextDraw(playerid, Text:clickedid)
 	switch(E_SCREEN_BUTTONS: clickedid)
 	{    
 		// d-pad
-		case S_BUTTON_UP: pressed_button = JOYPAD_UP;
-		case S_BUTTON_DOWN: pressed_button = JOYPAD_DOWN;
-		case S_BUTTON_LEFT: pressed_button = JOYPAD_LEFT;
-		case S_BUTTON_RIGHT: pressed_button = JOYPAD_RIGHT;
+		case S_BUTTON_UP: 		pressed_button = JOYPAD_UP;
+		case S_BUTTON_DOWN: 	pressed_button = JOYPAD_DOWN;
+		case S_BUTTON_LEFT: 	pressed_button = JOYPAD_LEFT;
+		case S_BUTTON_RIGHT:	pressed_button = JOYPAD_RIGHT;
 		// buttons
-		case S_BUTTON_B: pressed_button = JOYPAD_B;
-		case S_BUTTON_A: pressed_button = JOYPAD_A;
-		case S_BUTTON_SELECT: pressed_button = JOYPAD_SELECT;
-		case S_BUTTON_START: pressed_button = JOYPAD_START;
+		case S_BUTTON_B: 		pressed_button = JOYPAD_B;
+		case S_BUTTON_A: 		pressed_button = JOYPAD_A;
+		case S_BUTTON_SELECT: 	pressed_button = JOYPAD_SELECT;
+		case S_BUTTON_START: 	pressed_button = JOYPAD_START;
 	}
 	return 0;
+}
+
+stock E_JOYPAD_BUTTON:GetJoypadButton(KEY:button)
+{
+	if(button & KEY_FIRE)
+		return JOYPAD_A; // Default: Left Ctrl or Left Mouse Button
+
+	if(button & KEY_AIM)
+		return JOYPAD_B; // Default: Right Mouse Button
+
+	if(button & KEY_WALK)
+		return JOYPAD_SELECT; // Default: Left Alt
+
+	if(button & KEY_CROUCH)
+		return JOYPAD_START; // Default: C
+
+	return E_JOYPAD_BUTTON: -1;
+}
+
+stock Screen_GetPlayerInput(playerid)
+{
+	if(playerid == INVALID_PLAYER_ID)
+		return 0;
+		
+	new KEY:keys, updown, leftright;
+	GetPlayerKeys(playerid, keys, updown, leftright);
+	
+	new E_JOYPAD_BUTTON:new_button = GetJoypadButton(keys);
+
+    if(new_button != E_JOYPAD_BUTTON:-1)
+	{
+        pressed_button = new_button;
+	}
+	else
+	{
+		if(updown < 0)
+			pressed_button = JOYPAD_UP;
+		else if(updown > 0) 
+			pressed_button = JOYPAD_DOWN;
+
+		if(leftright < 0)
+			pressed_button = JOYPAD_LEFT;
+		else if(leftright > 0) 
+			pressed_button = JOYPAD_RIGHT;
+	}
+
+    return 1;
 }

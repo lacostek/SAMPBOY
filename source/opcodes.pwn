@@ -620,7 +620,7 @@ stock GB_Opcodes_Call(const op_info[E_GB_CPU_OPCODE_INFO])
         }
         case OP_CPL: // check 08.11.2025
         {
-            g_cpu[CPU_A] = ~g_cpu[CPU_A];
+            g_cpu[CPU_A] = UINT8(~g_cpu[CPU_A]);
             CPU_SetNegativeFlag(1);
             CPU_SetHalfCarryFlag(1);
         }
