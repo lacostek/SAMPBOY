@@ -178,7 +178,7 @@ stock GB_CPU_Get(E_CPU_ARG_TYPE: arg_type)
 
 	if(value > 0xFFFF || value < 0)
 	{
-		printf("[CRITICAL]: GB_CPU_Get value is not 16 bit (arg_type = %s, value16 = %d)", g_cpu_arg_name[_:arg_type], value);
+		//printf("[CRITICAL]: GB_CPU_Get value is not 16 bit (arg_type = %s, value16 = %d)", g_cpu_arg_name[_:arg_type], value);
 		value = UINT16(value);
 	}
 
@@ -192,8 +192,7 @@ stock GB_CPU_Set(E_CPU_ARG_TYPE: arg_type, value16)
 
 	if(value16 > 0xFFFF || value16 < 0)
 	{
-		printf("[CRITICAL]: GB_CPU_Set value is not 16 bit (arg_type = %s, value16 = %d)", g_cpu_arg_name[_:arg_type], value16);
-		//return;
+		//printf("[CRITICAL]: GB_CPU_Set value is not 16 bit (arg_type = %s, value16 = %d)", g_cpu_arg_name[_:arg_type], value16);
 		value16 = UINT16(value16);
 	}
 

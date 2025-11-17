@@ -15,14 +15,27 @@
 //----------------------------------------------------
 enum E_GB_ROM_TYPE
 {
-	ROM_TYPE_ROM_ONLY =         0x00,
+	ROM_TYPE_ROM_ONLY =        	 	0x00,
 	// ---------------
-	ROM_TYPE_MBC1 =             0x01,
-	ROM_TYPE_MBC1_RAM =         0x02,
-	ROM_TYPE_MBC1_RAM_BATT =    0x03,
+	ROM_TYPE_MBC1 =             	0x01,
+	ROM_TYPE_MBC1_RAM =         	0x02,
+	ROM_TYPE_MBC1_RAM_BATT =    	0x03,
 	// ---------------
-	ROM_TYPE_MBC2 =             0x05,
-	ROM_TYPE_MBC2_BATT =        0x06
+	ROM_TYPE_MBC2 =            	 	0x05,
+	ROM_TYPE_MBC2_BATT =        	0x06,
+	// ---------------
+	ROM_TYPE_MBC3_TIMER_BATT =		0x0F,
+	ROM_TYPE_MBC3_TIMER_RAM_BATT = 	0x10,
+	ROM_TYPE_MBC3 =					0x11,
+	ROM_TYPE_MBC3_RAM = 			0x12,
+	ROM_TYPE_MBC3_RAM_BATT = 		0x13,
+	// ---------------
+	ROM_TYPE_MBC5 =					0x19,
+	ROM_TYPE_MBC5_RAM =				0x1A,
+	ROM_TYPE_MBC5_RAM_BATT = 		0x1B,
+    ROM_TYPE_MBC5_RMB =				0x1C,
+    ROM_TYPE_MBC5_RMB_SRAM =		0x1D,
+    ROM_TYPE_MBC5_RMB_SRAM_BATT =	0x1E
 };
 
 //----------------------------------------------------

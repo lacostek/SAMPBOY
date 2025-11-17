@@ -150,7 +150,7 @@ new const g_cpu_opcode_name[] =
     "OP_SET"           // 57
 };
 #endif
-new const g_cpu_arg_name[][] = 
+stock const g_cpu_arg_name[][] = 
 {
     "ARG_NONE",        // 0
     "ARG_IMM_8",       // 1

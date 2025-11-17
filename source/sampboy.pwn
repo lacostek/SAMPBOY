@@ -21,16 +21,11 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
 #define VERSION_PATCH 0
-/*
-#define _DEBUG
-#define _ENABLE_WARNING_LOG
-#define _ENABLE_CRITICAL_LOG*/
+
+//#define _DEBUG
+//#define _ENABLE_WARNING_LOG
+//#define _ENABLE_CRITICAL_LOG
 //#define DEBUG_OPCODES // - very slow
-
-
-#if defined _samp_included
-	#define _SAMP_SERVER_TEST
-#endif
 
 // Options
 #define OPTIONS_FILE 	"roms.ini"
@@ -81,10 +76,17 @@ stock E_MAPPER_TYPE: GetMapperType()
 		case ROM_TYPE_MBC1, ROM_TYPE_MBC1_RAM, ROM_TYPE_MBC1_RAM_BATT:
 			map_type = MAPPER_MBC1;
 
-		// Work In Progress
-		/*case ROM_TYPE_MBC2, ROM_TYPE_MBC2_BATT:
-			map_type = MAPPER_MBC2;*/
+		case ROM_TYPE_MBC2, ROM_TYPE_MBC2_BATT:
+			map_type = MAPPER_MBC2;
 
+		case ROM_TYPE_MBC3_TIMER_BATT, ROM_TYPE_MBC3_TIMER_RAM_BATT, ROM_TYPE_MBC3, ROM_TYPE_MBC3_RAM, ROM_TYPE_MBC3_RAM_BATT:
+			map_type = MAPPER_MBC3;
+
+		case 
+			ROM_TYPE_MBC5, ROM_TYPE_MBC5_RAM, ROM_TYPE_MBC5_RAM_BATT, 
+			ROM_TYPE_MBC5_RMB, ROM_TYPE_MBC5_RMB_SRAM, ROM_TYPE_MBC5_RMB_SRAM_BATT:
+			map_type = MAPPER_MBC5;
+		
 		default:
 			printf("[MAIN]: Unknown mapper: %02x", _:rom_type);
 	}
