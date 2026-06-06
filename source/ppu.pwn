@@ -71,7 +71,10 @@ enum E_GB_PPU_STRUCT
 
 	bool: E_VBLANK_INTERRUPT,
 	bool: E_STAT_INTERRUPT,
-	E_LINE_TICKS
+	E_LINE_TICKS,
+
+	E_WILC,
+	E_BG_PIXELS[SCREEN_WIDTH]
 };
 
 //----------------------------------------------------
@@ -121,6 +124,7 @@ stock GB_PPU_Reset()
 	g_ppu[E_PPU_LCDC] = 0x91;
 	g_ppu[E_PPU_STAT] = 0;
 
+	g_ppu[E_WILC] =
 	g_ppu[E_SCX] =
 	g_ppu[E_SCY] =
 	g_ppu[E_LY] =
@@ -351,6 +355,8 @@ stock GB_PPU_RenderBackground()
 		new color_id = tile_line[pixel_x];
 		new color = (g_ppu[E_BGP] >> (color_id * 2)) & 0x3;
 
+		g_ppu[E_BG_PIXELS][screen_x] = color_id;
+
 		Screen_SetPixelColor(screen_x, screen_y, color);
 	}
 }
@@ -360,13 +366,18 @@ stock GB_PPU_RenderWindow()
 	if(g_ppu[E_LY] < g_ppu[E_WY])
 		return 0;
 
+	if(g_ppu[E_WX] > 166)
+        return 0;
+
 	new tile_map = LCDC_Get(LCDC_WIN_TILEMAP) ? 0x9C00 : 0x9800;
-	new tile_y = ((g_ppu[E_LY] - g_ppu[E_WY]) / 8) % 32;
-	new pixel_y = (g_ppu[E_LY] - g_ppu[E_WY]) % 8;
+	new tile_y = (g_ppu[E_WILC] / 8) % 32;
+	new pixel_y = g_ppu[E_WILC] % 8;
 	new screen_y = g_ppu[E_LY];
 	
 	new tile_line[8] = 0;
 	new last_tile_x = -1;
+
+	new bool: rendered = false;
 
 	for(new screen_x = 0; screen_x < SCREEN_WIDTH; screen_x++)
 	{
@@ -385,10 +396,17 @@ stock GB_PPU_RenderWindow()
 		new color_id = tile_line[pixel_x];
 		new color = (g_ppu[E_BGP] >> (color_id * 2)) & 0x3;
 
+		g_ppu[E_BG_PIXELS][screen_x] = color_id;
+
 		Screen_SetPixelColor(screen_x, screen_y, color);
+
+        rendered = true;
 	}
 
-	return 1;
+    if(rendered)
+        g_ppu[E_WILC]++;
+
+    return rendered ? 1 : 0;
 }
 
 stock GB_PPU_GetSprite(index, sprite[E_SPRITE_STRUCT])
@@ -409,6 +427,11 @@ stock GB_PPU_RenderSprites()
 	new height = LCDC_Get(LCDC_OBJ_SIZE) ? 16 : 8;
 	new sprite[E_SPRITE_STRUCT];
 
+	new sprite_priority[SCREEN_WIDTH];
+
+	for(new i = 0; i < SCREEN_WIDTH; i++) 
+		sprite_priority[i] = -1;
+
 	for(new i = 0; i < 40; i++)
 	{
 		GB_PPU_GetSprite(i * 4, sprite);
@@ -419,7 +442,12 @@ stock GB_PPU_RenderSprites()
 
 		new y = screen_y - real_sprite_y;
 		new y_flip = Sprite_Get(sprite, SPRITE_FLAG_YFLIP) ? (height - 1 - y) : (y);
-		new tile_addr = (0x8000 + (sprite[SPRITE_TILE_ID] * 16) + (y_flip * 2));
+		new tile_id = sprite[SPRITE_TILE_ID];
+
+		if(height == 16)
+			tile_id &= 0xFE;
+
+		new tile_addr = (0x8000 + (tile_id * 16) + (y_flip * 2));
 		new palette = Sprite_Get(sprite, SPRITE_FLAG_PALETTE) ? g_ppu[E_OBP1] : g_ppu[E_OBP0];
 
 		new d0 = GB_PPU_Read_VRAM(tile_addr);
@@ -433,10 +461,18 @@ stock GB_PPU_RenderSprites()
 			if(screen_x >= SCREEN_WIDTH)
 				break;
 
+			if(sprite_priority[screen_x] != -1 && sprite[SPRITE_X] >= sprite_priority[screen_x])
+    			continue;
+
+			sprite_priority[screen_x] = sprite[SPRITE_X];
+
 			new color_id = GB_PPU_GetColorID(d0, d1, p);
 			
 			if(color_id == 0)
 				continue;
+
+			if(Sprite_Get(sprite, SPRITE_FLAG_PRIORITY) && g_ppu[E_BG_PIXELS][screen_x] != 0)
+        		continue;
 
 			new color = (palette >> (color_id * 2)) & 0x3;
 			Screen_SetPixelColor(screen_x, screen_y, color);
@@ -447,6 +483,9 @@ stock GB_PPU_RenderSprites()
 
 stock GB_PPU_RenderScanline()
 {
+	for(new i = 0; i < SCREEN_WIDTH; i++)
+		g_ppu[E_BG_PIXELS][i] = 0;
+
 	if(LCDC_Get(LCDC_BG_ENABLE))
 	{
 		GB_PPU_RenderBackground();
@@ -559,7 +598,8 @@ stock GB_PPU_Step_VBlank()
 		if(g_ppu[E_LY] == 153)
 		{
 			GB_PPU_SetMode(PPU_MODE_OAM_SCAN);
-			g_ppu[E_LY] = 0;
+			g_ppu[E_LY] =
+			g_ppu[E_WILC] = 0;
 		}
 	}
 }
