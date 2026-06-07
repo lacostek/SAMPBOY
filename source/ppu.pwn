@@ -458,8 +458,8 @@ stock GB_PPU_RenderSprites()
 			new x_flip = Sprite_Get(sprite, SPRITE_FLAG_XFLIP) ? p : 7 - p;
 			new screen_x = (sprite[SPRITE_X] - 8) + x_flip;
 
-			if(screen_x >= SCREEN_WIDTH)
-				break;
+			if(screen_x < 0 || screen_x >= SCREEN_WIDTH)
+    			continue;
 
 			if(sprite_priority[screen_x] != -1 && sprite[SPRITE_X] >= sprite_priority[screen_x])
     			continue;
